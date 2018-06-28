@@ -107,15 +107,33 @@ class AppComponent {
         `
     }
     getCurrencies() {
-        this.dbPromise.then(db => {
-          return db.transaction('currencies')
-            .objectStore('currencies').getAll();
-        }).then(allObjs => {
-            this.currencies = allObjs;
-            this.changeView();
-            this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
-            this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+        setTimeout(() => {
+            this.dbPromise.then(db => {
+              return db.transaction('currencies')
+                .objectStore('currencies').getAll();
+            }).then(allObjs => {
+                this.currencies = allObjs;
+                this.changeView();
+                this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
+                this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+            });
+        }, 500);
+    }
+    getOnline() {
+        const dbPromise = idb.open('currency-Store', 1, upgradeDB => {
+          upgradeDB.createObjectStore('currencies');
         });
+        const currencies = [];
+        // Getting our currencies from our free api
+        fetch('https://free.currencyconverterapi.com/api/v5/currencies')
+          .then((response) => {
+            return response.json();
+          })
+          .then((myJson) => {
+            myJson.results.forEach((value, key) => {
+                this.currencies.push(value);
+            });
+          });
     }
 
 

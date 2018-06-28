@@ -174,13 +174,33 @@ var AppComponent = function () {
         value: function getCurrencies() {
             var _this = this;
 
-            this.dbPromise.then(function (db) {
-                return db.transaction('currencies').objectStore('currencies').getAll();
-            }).then(function (allObjs) {
-                _this.currencies = allObjs;
-                _this.changeView();
-                _this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
-                _this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+            setTimeout(function () {
+                _this.dbPromise.then(function (db) {
+                    return db.transaction('currencies').objectStore('currencies').getAll();
+                }).then(function (allObjs) {
+                    _this.currencies = allObjs;
+                    _this.changeView();
+                    _this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
+                    _this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+                });
+            }, 500);
+        }
+    }, {
+        key: 'getOnline',
+        value: function getOnline() {
+            var _this2 = this;
+
+            var dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
+                upgradeDB.createObjectStore('currencies');
+            });
+            var currencies = [];
+            // Getting our currencies from our free api
+            fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (response) {
+                return response.json();
+            }).then(function (myJson) {
+                myJson.results.forEach(function (value, key) {
+                    _this2.currencies.push(value);
+                });
             });
         }
     }]);
