@@ -1,2 +1,522 @@
-!function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=1)}([function(e,t,n){"use strict";!function(){function t(e){return new Promise(function(t,n){e.onsuccess=function(){t(e.result)},e.onerror=function(){n(e.error)}})}function n(e,n,r){var o,i=new Promise(function(i,c){t(o=e[n].apply(e,r)).then(i,c)});return i.request=o,i}function r(e,t,n){n.forEach(function(n){Object.defineProperty(e.prototype,n,{get:function(){return this[t][n]},set:function(e){this[t][n]=e}})})}function o(e,t,r,o){o.forEach(function(o){o in r.prototype&&(e.prototype[o]=function(){return n(this[t],o,arguments)})})}function i(e,t,n,r){r.forEach(function(r){r in n.prototype&&(e.prototype[r]=function(){return this[t][r].apply(this[t],arguments)})})}function c(e,t,r,o){o.forEach(function(o){o in r.prototype&&(e.prototype[o]=function(){return function(e,t,r){var o=n(e,t,r);return o.then(function(e){if(e)return new s(e,o.request)})}(this[t],o,arguments)})})}function u(e){this._index=e}function s(e,t){this._cursor=e,this._request=t}function a(e){this._store=e}function l(e){this._tx=e,this.complete=new Promise(function(t,n){e.oncomplete=function(){t()},e.onerror=function(){n(e.error)},e.onabort=function(){n(e.error)}})}function f(e,t,n){this._db=e,this.oldVersion=t,this.transaction=new l(n)}function p(e){this._db=e}r(u,"_index",["name","keyPath","multiEntry","unique"]),o(u,"_index",IDBIndex,["get","getKey","getAll","getAllKeys","count"]),c(u,"_index",IDBIndex,["openCursor","openKeyCursor"]),r(s,"_cursor",["direction","key","primaryKey","value"]),o(s,"_cursor",IDBCursor,["update","delete"]),["advance","continue","continuePrimaryKey"].forEach(function(e){e in IDBCursor.prototype&&(s.prototype[e]=function(){var n=this,r=arguments;return Promise.resolve().then(function(){return n._cursor[e].apply(n._cursor,r),t(n._request).then(function(e){if(e)return new s(e,n._request)})})})}),a.prototype.createIndex=function(){return new u(this._store.createIndex.apply(this._store,arguments))},a.prototype.index=function(){return new u(this._store.index.apply(this._store,arguments))},r(a,"_store",["name","keyPath","indexNames","autoIncrement"]),o(a,"_store",IDBObjectStore,["put","add","delete","clear","get","getAll","getKey","getAllKeys","count"]),c(a,"_store",IDBObjectStore,["openCursor","openKeyCursor"]),i(a,"_store",IDBObjectStore,["deleteIndex"]),l.prototype.objectStore=function(){return new a(this._tx.objectStore.apply(this._tx,arguments))},r(l,"_tx",["objectStoreNames","mode"]),i(l,"_tx",IDBTransaction,["abort"]),f.prototype.createObjectStore=function(){return new a(this._db.createObjectStore.apply(this._db,arguments))},r(f,"_db",["name","version","objectStoreNames"]),i(f,"_db",IDBDatabase,["deleteObjectStore","close"]),p.prototype.transaction=function(){return new l(this._db.transaction.apply(this._db,arguments))},r(p,"_db",["name","version","objectStoreNames"]),i(p,"_db",IDBDatabase,["close"]),["openCursor","openKeyCursor"].forEach(function(e){[a,u].forEach(function(t){e in t.prototype&&(t.prototype[e.replace("open","iterate")]=function(){var t=function(e){return Array.prototype.slice.call(e)}(arguments),n=t[t.length-1],r=this._store||this._index,o=r[e].apply(r,t.slice(0,-1));o.onsuccess=function(){n(o.result)}})})}),[u,a].forEach(function(e){e.prototype.getAll||(e.prototype.getAll=function(e,t){var n=this,r=[];return new Promise(function(o){n.iterateCursor(e,function(e){e?(r.push(e.value),void 0===t||r.length!=t?e.continue():o(r)):o(r)})})})});var d={open:function(e,t,r){var o=n(indexedDB,"open",[e,t]),i=o.request;return i&&(i.onupgradeneeded=function(e){r&&r(new f(i.result,e.oldVersion,i.transaction))}),o.then(function(e){return new p(e)})},delete:function(e){return n(indexedDB,"deleteDatabase",[e])}};e.exports=d,e.exports.default=e.exports}()},function(e,t,n){"use strict";var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),o=function(e){return e&&e.__esModule?e:{default:e}}(n(0));Object.prototype.forEach||Object.defineProperty(Object.prototype,"forEach",{value:function(e,t){if(null==this)throw new TypeError("Not an object");for(var n in t=t||window,this)this.hasOwnProperty(n)&&e.call(t,this[n],n,this)}});var i=o.default.open("currency-Store",1,function(e){e.createObjectStore("currencies")}),c=[];fetch("https://free.currencyconverterapi.com/api/v5/currencies").then(function(e){return e.json()}).then(function(e){e.results.forEach(function(e,t){c.push(e)})}).then(function(){i.then(function(e){var t=e.transaction("currencies","readwrite"),n=t.objectStore("currencies");return c.forEach(function(e,t){n.put(e,e.id)}),t.complete})}),new(function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.currencies=[],this.dbPromise=o.default.open("currency-Store",1,function(e){e.createObjectStore("currencies")}),this.main=document.querySelector("main"),this.getCurrencies()}return r(e,[{key:"changeView",value:function(){this.main.innerHTML='\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">Made by Daltonic!</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <select class="form-control">\n                                        '+this.currencies.map(function(e){return'<option value="'+e.id+'">'+e.id+"</option>"})+'\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromCurrency">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <select class="form-control">\n                                        '+this.currencies.map(function(e){return'<option value="'+e.id+'">'+e.id+"</option>"})+'\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                        <input type="number" placeholder="Amount" class="form-control" id="toCurrency">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        '}},{key:"getCurrencies",value:function(){var e=this;this.dbPromise.then(function(e){return e.transaction("currencies").objectStore("currencies").getAll()}).then(function(t){e.currencies=t,e.changeView()})}}]),e}())}]);
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./js/app.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./js/app.js":
+/*!*******************!*\
+  !*** ./js/app.js ***!
+  \*******************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // ................................................IDB START...........................................................
+
+
+var _idb = __webpack_require__(/*! idb */ "./node_modules/idb/lib/idb.js");
+
+var _idb2 = _interopRequireDefault(_idb);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+if (!Object.prototype.forEach) {
+    Object.defineProperty(Object.prototype, 'forEach', {
+        value: function value(callback, thisArg) {
+            if (this == null) {
+                throw new TypeError('Not an object');
+            }
+            thisArg = thisArg || window;
+            for (var key in this) {
+                if (this.hasOwnProperty(key)) {
+                    callback.call(thisArg, this[key], key, this);
+                }
+            }
+        }
+    });
+}
+var dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
+    upgradeDB.createObjectStore('currencies');
+});
+var currencies = [];
+// Getting our currencies from our free api
+fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (response) {
+    return response.json();
+}).then(function (myJson) {
+    myJson.results.forEach(function (value, key) {
+        currencies.push(value);
+    });
+}).then(function () {
+    // Set data on IndexBD
+    dbPromise.then(function (db) {
+        var tx = db.transaction('currencies', 'readwrite');
+        var currenciesStore = tx.objectStore('currencies');
+        currencies.forEach(function (value, key) {
+            currenciesStore.put(value, value.id);
+        });
+        return tx.complete;
+    });
+});
+
+// ................................................APP START...........................................................
+
+var AppComponent = function () {
+    function AppComponent() {
+        _classCallCheck(this, AppComponent);
+
+        this.currencies = [];
+        // Defining the forEach function
+        this.dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
+            upgradeDB.createObjectStore('currencies');
+        });
+        this.main = document.querySelector("main");
+        this.getCurrencies();
+    }
+
+    _createClass(AppComponent, [{
+        key: 'changeView',
+        value: function changeView() {
+            this.main.innerHTML = '\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">Challenge 2.0</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <label class="text-left">From</label>\n                                    <br />\n                                    <select class="form-control" id="fromCurrency">\n                                        ' + this.currencies.map(function (currency) {
+                return '<option value="' + currency.id + '">' + currency.id + '</option>';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
+                return '<option value="' + currency.id + '">' + currency.id + '</option>';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
+        }
+    }, {
+        key: 'getCurrencies',
+        value: function getCurrencies() {
+            var _this = this;
+
+            this.dbPromise.then(function (db) {
+                return db.transaction('currencies').objectStore('currencies').getAll();
+            }).then(function (allObjs) {
+                _this.currencies = allObjs;
+                _this.changeView();
+                _this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
+                _this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+            });
+        }
+    }]);
+
+    return AppComponent;
+}();
+
+new AppComponent();
+
+/***/ }),
+
+/***/ "./node_modules/idb/lib/idb.js":
+/*!*************************************!*\
+  !*** ./node_modules/idb/lib/idb.js ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+(function() {
+  function toArray(arr) {
+    return Array.prototype.slice.call(arr);
+  }
+
+  function promisifyRequest(request) {
+    return new Promise(function(resolve, reject) {
+      request.onsuccess = function() {
+        resolve(request.result);
+      };
+
+      request.onerror = function() {
+        reject(request.error);
+      };
+    });
+  }
+
+  function promisifyRequestCall(obj, method, args) {
+    var request;
+    var p = new Promise(function(resolve, reject) {
+      request = obj[method].apply(obj, args);
+      promisifyRequest(request).then(resolve, reject);
+    });
+
+    p.request = request;
+    return p;
+  }
+
+  function promisifyCursorRequestCall(obj, method, args) {
+    var p = promisifyRequestCall(obj, method, args);
+    return p.then(function(value) {
+      if (!value) return;
+      return new Cursor(value, p.request);
+    });
+  }
+
+  function proxyProperties(ProxyClass, targetProp, properties) {
+    properties.forEach(function(prop) {
+      Object.defineProperty(ProxyClass.prototype, prop, {
+        get: function() {
+          return this[targetProp][prop];
+        },
+        set: function(val) {
+          this[targetProp][prop] = val;
+        }
+      });
+    });
+  }
+
+  function proxyRequestMethods(ProxyClass, targetProp, Constructor, properties) {
+    properties.forEach(function(prop) {
+      if (!(prop in Constructor.prototype)) return;
+      ProxyClass.prototype[prop] = function() {
+        return promisifyRequestCall(this[targetProp], prop, arguments);
+      };
+    });
+  }
+
+  function proxyMethods(ProxyClass, targetProp, Constructor, properties) {
+    properties.forEach(function(prop) {
+      if (!(prop in Constructor.prototype)) return;
+      ProxyClass.prototype[prop] = function() {
+        return this[targetProp][prop].apply(this[targetProp], arguments);
+      };
+    });
+  }
+
+  function proxyCursorRequestMethods(ProxyClass, targetProp, Constructor, properties) {
+    properties.forEach(function(prop) {
+      if (!(prop in Constructor.prototype)) return;
+      ProxyClass.prototype[prop] = function() {
+        return promisifyCursorRequestCall(this[targetProp], prop, arguments);
+      };
+    });
+  }
+
+  function Index(index) {
+    this._index = index;
+  }
+
+  proxyProperties(Index, '_index', [
+    'name',
+    'keyPath',
+    'multiEntry',
+    'unique'
+  ]);
+
+  proxyRequestMethods(Index, '_index', IDBIndex, [
+    'get',
+    'getKey',
+    'getAll',
+    'getAllKeys',
+    'count'
+  ]);
+
+  proxyCursorRequestMethods(Index, '_index', IDBIndex, [
+    'openCursor',
+    'openKeyCursor'
+  ]);
+
+  function Cursor(cursor, request) {
+    this._cursor = cursor;
+    this._request = request;
+  }
+
+  proxyProperties(Cursor, '_cursor', [
+    'direction',
+    'key',
+    'primaryKey',
+    'value'
+  ]);
+
+  proxyRequestMethods(Cursor, '_cursor', IDBCursor, [
+    'update',
+    'delete'
+  ]);
+
+  // proxy 'next' methods
+  ['advance', 'continue', 'continuePrimaryKey'].forEach(function(methodName) {
+    if (!(methodName in IDBCursor.prototype)) return;
+    Cursor.prototype[methodName] = function() {
+      var cursor = this;
+      var args = arguments;
+      return Promise.resolve().then(function() {
+        cursor._cursor[methodName].apply(cursor._cursor, args);
+        return promisifyRequest(cursor._request).then(function(value) {
+          if (!value) return;
+          return new Cursor(value, cursor._request);
+        });
+      });
+    };
+  });
+
+  function ObjectStore(store) {
+    this._store = store;
+  }
+
+  ObjectStore.prototype.createIndex = function() {
+    return new Index(this._store.createIndex.apply(this._store, arguments));
+  };
+
+  ObjectStore.prototype.index = function() {
+    return new Index(this._store.index.apply(this._store, arguments));
+  };
+
+  proxyProperties(ObjectStore, '_store', [
+    'name',
+    'keyPath',
+    'indexNames',
+    'autoIncrement'
+  ]);
+
+  proxyRequestMethods(ObjectStore, '_store', IDBObjectStore, [
+    'put',
+    'add',
+    'delete',
+    'clear',
+    'get',
+    'getAll',
+    'getKey',
+    'getAllKeys',
+    'count'
+  ]);
+
+  proxyCursorRequestMethods(ObjectStore, '_store', IDBObjectStore, [
+    'openCursor',
+    'openKeyCursor'
+  ]);
+
+  proxyMethods(ObjectStore, '_store', IDBObjectStore, [
+    'deleteIndex'
+  ]);
+
+  function Transaction(idbTransaction) {
+    this._tx = idbTransaction;
+    this.complete = new Promise(function(resolve, reject) {
+      idbTransaction.oncomplete = function() {
+        resolve();
+      };
+      idbTransaction.onerror = function() {
+        reject(idbTransaction.error);
+      };
+      idbTransaction.onabort = function() {
+        reject(idbTransaction.error);
+      };
+    });
+  }
+
+  Transaction.prototype.objectStore = function() {
+    return new ObjectStore(this._tx.objectStore.apply(this._tx, arguments));
+  };
+
+  proxyProperties(Transaction, '_tx', [
+    'objectStoreNames',
+    'mode'
+  ]);
+
+  proxyMethods(Transaction, '_tx', IDBTransaction, [
+    'abort'
+  ]);
+
+  function UpgradeDB(db, oldVersion, transaction) {
+    this._db = db;
+    this.oldVersion = oldVersion;
+    this.transaction = new Transaction(transaction);
+  }
+
+  UpgradeDB.prototype.createObjectStore = function() {
+    return new ObjectStore(this._db.createObjectStore.apply(this._db, arguments));
+  };
+
+  proxyProperties(UpgradeDB, '_db', [
+    'name',
+    'version',
+    'objectStoreNames'
+  ]);
+
+  proxyMethods(UpgradeDB, '_db', IDBDatabase, [
+    'deleteObjectStore',
+    'close'
+  ]);
+
+  function DB(db) {
+    this._db = db;
+  }
+
+  DB.prototype.transaction = function() {
+    return new Transaction(this._db.transaction.apply(this._db, arguments));
+  };
+
+  proxyProperties(DB, '_db', [
+    'name',
+    'version',
+    'objectStoreNames'
+  ]);
+
+  proxyMethods(DB, '_db', IDBDatabase, [
+    'close'
+  ]);
+
+  // Add cursor iterators
+  // TODO: remove this once browsers do the right thing with promises
+  ['openCursor', 'openKeyCursor'].forEach(function(funcName) {
+    [ObjectStore, Index].forEach(function(Constructor) {
+      // Don't create iterateKeyCursor if openKeyCursor doesn't exist.
+      if (!(funcName in Constructor.prototype)) return;
+
+      Constructor.prototype[funcName.replace('open', 'iterate')] = function() {
+        var args = toArray(arguments);
+        var callback = args[args.length - 1];
+        var nativeObject = this._store || this._index;
+        var request = nativeObject[funcName].apply(nativeObject, args.slice(0, -1));
+        request.onsuccess = function() {
+          callback(request.result);
+        };
+      };
+    });
+  });
+
+  // polyfill getAll
+  [Index, ObjectStore].forEach(function(Constructor) {
+    if (Constructor.prototype.getAll) return;
+    Constructor.prototype.getAll = function(query, count) {
+      var instance = this;
+      var items = [];
+
+      return new Promise(function(resolve) {
+        instance.iterateCursor(query, function(cursor) {
+          if (!cursor) {
+            resolve(items);
+            return;
+          }
+          items.push(cursor.value);
+
+          if (count !== undefined && items.length == count) {
+            resolve(items);
+            return;
+          }
+          cursor.continue();
+        });
+      });
+    };
+  });
+
+  var exp = {
+    open: function(name, version, upgradeCallback) {
+      var p = promisifyRequestCall(indexedDB, 'open', [name, version]);
+      var request = p.request;
+
+      if (request) {
+        request.onupgradeneeded = function(event) {
+          if (upgradeCallback) {
+            upgradeCallback(new UpgradeDB(request.result, event.oldVersion, request.transaction));
+          }
+        };
+      }
+
+      return p.then(function(db) {
+        return new DB(db);
+      });
+    },
+    delete: function(name) {
+      return promisifyRequestCall(indexedDB, 'deleteDatabase', [name]);
+    }
+  };
+
+  if (true) {
+    module.exports = exp;
+    module.exports.default = module.exports;
+  }
+  else {}
+}());
+
+
+/***/ })
+
+/******/ });
 //# sourceMappingURL=app.bundle.js.map
