@@ -107,100 +107,84 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-if (!Object.prototype.forEach) {
-    Object.defineProperty(Object.prototype, 'forEach', {
-        value: function value(callback, thisArg) {
-            if (this == null) {
-                throw new TypeError('Not an object');
-            }
-            thisArg = thisArg || window;
-            for (var key in this) {
-                if (this.hasOwnProperty(key)) {
-                    callback.call(thisArg, this[key], key, this);
-                }
-            }
-        }
-    });
-}
-var dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
-    upgradeDB.createObjectStore('currencies');
-});
-var currencies = [];
-// Getting our currencies from our free api
-fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (response) {
-    return response.json();
-}).then(function (myJson) {
-    myJson.results.forEach(function (value, key) {
-        currencies.push(value);
-    });
-}).then(function () {
-    // Set data on IndexBD
-    dbPromise.then(function (db) {
-        var tx = db.transaction('currencies', 'readwrite');
-        var currenciesStore = tx.objectStore('currencies');
-        currencies.forEach(function (value, key) {
-            currenciesStore.put(value, value.id);
-        });
-        return tx.complete;
-    });
-});
-
 // ................................................APP START...........................................................
-
 var AppComponent = function () {
     function AppComponent() {
         _classCallCheck(this, AppComponent);
 
         this.currencies = [];
-        // Defining the forEach function
+        this.main = document.querySelector("main");
         this.dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
             upgradeDB.createObjectStore('currencies');
         });
-        this.main = document.querySelector("main");
-        this.getCurrencies();
+        this.getFromIDB();
+        this.getFromApi();
     }
 
     _createClass(AppComponent, [{
         key: 'changeView',
         value: function changeView() {
-            this.main.innerHTML = '\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">Challenge 2.0</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <label class="text-left">From</label>\n                                    <br />\n                                    <select class="form-control" id="fromCurrency">\n                                        ' + this.currencies.map(function (currency) {
+            this.main.innerHTML = '\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">ALC Challenge 2.0</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <label class="text-left">From</label>\n                                    <br />\n                                    <select class="form-control" id="fromCurrency">\n                                        ' + this.currencies.map(function (currency) {
                 return '<option value="' + currency.id + '">' + currency.id + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
                 return '<option value="' + currency.id + '">' + currency.id + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
     }, {
-        key: 'getCurrencies',
-        value: function getCurrencies() {
+        key: 'getFromApi',
+        value: function getFromApi() {
             var _this = this;
 
-            setTimeout(function () {
-                _this.dbPromise.then(function (db) {
-                    return db.transaction('currencies').objectStore('currencies').getAll();
-                }).then(function (allObjs) {
-                    _this.currencies = allObjs;
-                    _this.changeView();
-                    _this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
-                    _this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+            // Some function to help me in iterating...
+            if (!Object.prototype.forEach) {
+                Object.defineProperty(Object.prototype, 'forEach', {
+                    value: function value(callback, thisArg) {
+                        if (this == null) {
+                            throw new TypeError('Not an object');
+                        }
+                        thisArg = thisArg || window;
+                        for (var key in this) {
+                            if (this.hasOwnProperty(key)) {
+                                callback.call(thisArg, this[key], key, this);
+                            }
+                        }
+                    }
                 });
-            }, 500);
-        }
-    }, {
-        key: 'getOnline',
-        value: function getOnline() {
-            var _this2 = this;
-
-            var dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
-                upgradeDB.createObjectStore('currencies');
-            });
+            }
             var currencies = [];
             // Getting our currencies from our free api
             fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (response) {
                 return response.json();
             }).then(function (myJson) {
                 myJson.results.forEach(function (value, key) {
-                    _this2.currencies.push(value);
+                    currencies.push(value);
                 });
+            }).then(function () {
+                // Set data on IndexBD
+                _this.dbPromise.then(function (db) {
+                    var tx = db.transaction('currencies', 'readwrite');
+                    var currenciesStore = tx.objectStore('currencies');
+                    currencies.forEach(function (value, key) {
+                        currenciesStore.put(value, value.id);
+                    });
+                    return tx.complete;
+                }).then(function () {
+                    _this.getFromIDB();
+                });
+            });
+        }
+    }, {
+        key: 'getFromIDB',
+        value: function getFromIDB() {
+            var _this2 = this;
+
+            return this.dbPromise.then(function (db) {
+                return db.transaction('currencies').objectStore('currencies').getAll();
+            }).then(function (allObjs) {
+                _this2.currencies = allObjs;
+                _this2.changeView();
+                _this2.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
+                _this2.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
             });
         }
     }]);
