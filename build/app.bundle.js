@@ -96,7 +96,7 @@
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // ................................................IDB START...........................................................
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // ................................................IMPORTING LIB...........................................................
 
 
 var _idb = __webpack_require__(/*! idb */ "./node_modules/idb/lib/idb.js");
@@ -112,23 +112,24 @@ var AppComponent = function () {
     function AppComponent() {
         _classCallCheck(this, AppComponent);
 
+        this.url = 'https://free.currencyconverterapi.com/api/v5/';
         this.currencies = [];
-        this.main = document.querySelector("main");
         this.dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
             upgradeDB.createObjectStore('currencies');
         });
-        this.getFromIDB();
-        this.getFromApi();
+        this.main = document.querySelector("main");
+        this.getFromIDB(); // If this fails to fetch from indexDB it falls back to the api
+        this.getFromApi(); // The api calls goes through only if user is online
     }
 
     _createClass(AppComponent, [{
         key: 'changeView',
         value: function changeView() {
             this.main.innerHTML = '\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">ALC Challenge 2.0</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <label class="text-left">From</label>\n                                    <br />\n                                    <select class="form-control" id="fromCurrency">\n                                        ' + this.currencies.map(function (currency) {
-                return '<option value="' + currency.id + '">' + currency.id + '</option>';
+                return '<option value="' + currency.id + '">' + currency.currencyName + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
-                return '<option value="' + currency.id + '">' + currency.id + '</option>';
-            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
+                return '<option value="' + currency.id + '">' + currency.currencyName + '</option>';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
     }, {
         key: 'getFromApi',
@@ -153,7 +154,7 @@ var AppComponent = function () {
             }
             var currencies = [];
             // Getting our currencies from our free api
-            fetch('https://free.currencyconverterapi.com/api/v5/currencies').then(function (response) {
+            fetch(this.url + 'currencies').then(function (response) {
                 return response.json();
             }).then(function (myJson) {
                 myJson.results.forEach(function (value, key) {
@@ -178,6 +179,7 @@ var AppComponent = function () {
         value: function getFromIDB() {
             var _this2 = this;
 
+            // Get data from indexDB and populate the this.currencies array
             return this.dbPromise.then(function (db) {
                 return db.transaction('currencies').objectStore('currencies').getAll();
             }).then(function (allObjs) {
@@ -185,6 +187,28 @@ var AppComponent = function () {
                 _this2.changeView();
                 _this2.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
                 _this2.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+                _this2.extraSetup();
+            });
+        }
+    }, {
+        key: 'extraSetup',
+        value: function extraSetup() {
+            var _this3 = this;
+
+            var button = document.querySelector('button');
+            button.addEventListener("click", function () {
+                // Get values from options
+                var f = document.getElementById('fromCurrency');
+                var t = document.getElementById('toCurrency');
+                var fromCurrency = f.options[f.selectedIndex].value;
+                var toCurrency = t.options[t.selectedIndex].value;
+
+                // Setting an event listener for a click event
+                fetch(_this3.url + ('convert?q=' + fromCurrency + '_' + toCurrency + '&compact=ultra')).then(function (response) {
+                    return response.json();
+                }).then(function (myJson) {
+                    console.log(myJson);
+                });
             });
         }
     }]);
