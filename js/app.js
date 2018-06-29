@@ -13,6 +13,7 @@ class AppComponent {
         this.main = document.querySelector("main");
         this.getFromIDB() // If this fails to fetch from indexDB it falls back to the api
         this.getFromApi(); // The api calls goes through only if user is online
+        // On window load function....
     }
 
     changeView() {
@@ -30,14 +31,14 @@ class AppComponent {
                                     <br />
                                     <select class="form-control" id="fromCurrency">
                                         ${this.currencies.map((currency) => {
-                                            return `<option value="${currency.id}">${currency.currencyName}</option>`
+                                            return `<option value="${currency.id}">${currency.id} - ${currency.currencyName}</option>`
                                         })}
                                     </select>
                                 </div>
                                 <div class="col-md-6 col-sm-6">
                                     <div class="form-group">
                                      <br />
-                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromAmount">
+                                        <input type="number" value="1" class="form-control" id="fromAmount">
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-sm-6">
@@ -45,14 +46,14 @@ class AppComponent {
                                     <br />
                                     <select class="form-control" id="toCurrency">
                                         ${this.currencies.map((currency) => {
-                                            return `<option value="${currency.id}">${currency.currencyName}</option>`
+                                            return `<option value="${currency.id}">${currency.id} - ${currency.currencyName}</option>`
                                         })}
                                     </select>
                                 </div>
                                 <div class="col-md-6 col-sm-6">
                                     <div class="form-group">
                                      <br />
-                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">
+                                        <input type="text" value="" class="form-control" id="toAmount">
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -68,7 +69,7 @@ class AppComponent {
     }
 
     getFromApi() {
-        // Some function to help me in iterating...
+        // Defining the forEach iterator function...
         if (!Object.prototype.forEach) {
             Object.defineProperty(Object.prototype, 'forEach', {
                 value: function (callback, thisArg) {
@@ -96,7 +97,7 @@ class AppComponent {
             });
           })
           .then(() => {
-            // Set data on IndexBD
+            // Setting data on IndexBD
              this.dbPromise.then((db) => {
               const tx = db.transaction('currencies', 'readwrite');
               const currenciesStore = tx.objectStore('currencies');
@@ -113,7 +114,7 @@ class AppComponent {
 
 
     getFromIDB() {
-        // Get data from indexDB and populate the this.currencies array
+        // Getting data from indexDB and populate the this.currencies array
         return this.dbPromise.then(db => {
           return db.transaction('currencies')
             .objectStore('currencies').getAll();
@@ -122,28 +123,51 @@ class AppComponent {
             this.changeView();
             this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
             this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+            this.getDefaultConvert();
             this.extraSetup();
         });
     }
 
     extraSetup() {
+        // On convert function....
         const button = document.querySelector('button');
         button.addEventListener("click", () => { 
-            // Get values from options
+            // Getting values from options
             const f = document.getElementById('fromCurrency');
             const t = document.getElementById('toCurrency');
             const fromCurrency = f.options[f.selectedIndex].value;
             const toCurrency = t.options[t.selectedIndex].value;
-            
+
             // Setting an event listener for a click event
             fetch(this.url + `convert?q=${fromCurrency}_${toCurrency}&compact=ultra`)
             .then((response) => {
                 return response.json();
               })
-            .then((myJson) => {
-                console.log(myJson);
+            .then((equivalent) => {
+                let value = equivalent[`${fromCurrency}_${toCurrency}`];
+                value = document.getElementById('fromAmount').value * value;
+                document.getElementById('toAmount').setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
               });
         });
+    }
+
+    getDefaultConvert() {
+        // Getting values from options
+        const f = document.getElementById('fromCurrency');
+        const t = document.getElementById('toCurrency');
+        const fromCurrency = f.options[f.selectedIndex].value;
+        const toCurrency = t.options[t.selectedIndex].value;
+
+        // Setting an event listener for a click event
+        fetch(this.url + `convert?q=${fromCurrency}_${toCurrency}&compact=ultra`)
+        .then((response) => {
+            return response.json();
+          })
+        .then((equivalent) => {
+            let value = equivalent[`${fromCurrency}_${toCurrency}`];
+            value = document.getElementById('fromAmount').value * value;
+            document.getElementById('toAmount').setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
+          });
     }
     
 }

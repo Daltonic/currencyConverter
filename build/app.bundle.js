@@ -120,23 +120,24 @@ var AppComponent = function () {
         this.main = document.querySelector("main");
         this.getFromIDB(); // If this fails to fetch from indexDB it falls back to the api
         this.getFromApi(); // The api calls goes through only if user is online
+        // On window load function....
     }
 
     _createClass(AppComponent, [{
         key: 'changeView',
         value: function changeView() {
             this.main.innerHTML = '\n            <div class="row">\n                <div class="col-md-6 ml-auto mr-auto">\n                    <div class="card">\n                        <div class="card-body text-center">\n                            <h4 class="card-title text-muted">Convert Now!</h4>\n                            <p class="card-subtitle text-muted">ALC Challenge 2.0</p>\n                            <hr>\n                            <div class="row">\n                                <div class="col-md-6 col-sm-6">\n                                    <label class="text-left">From</label>\n                                    <br />\n                                    <select class="form-control" id="fromCurrency">\n                                        ' + this.currencies.map(function (currency) {
-                return '<option value="' + currency.id + '">' + currency.currencyName + '</option>';
-            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
-                return '<option value="' + currency.id + '">' + currency.currencyName + '</option>';
-            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" placeholder="Amount" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
+                return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
+                return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="text" value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
     }, {
         key: 'getFromApi',
         value: function getFromApi() {
             var _this = this;
 
-            // Some function to help me in iterating...
+            // Defining the forEach iterator function...
             if (!Object.prototype.forEach) {
                 Object.defineProperty(Object.prototype, 'forEach', {
                     value: function value(callback, thisArg) {
@@ -161,7 +162,7 @@ var AppComponent = function () {
                     currencies.push(value);
                 });
             }).then(function () {
-                // Set data on IndexBD
+                // Setting data on IndexBD
                 _this.dbPromise.then(function (db) {
                     var tx = db.transaction('currencies', 'readwrite');
                     var currenciesStore = tx.objectStore('currencies');
@@ -179,7 +180,7 @@ var AppComponent = function () {
         value: function getFromIDB() {
             var _this2 = this;
 
-            // Get data from indexDB and populate the this.currencies array
+            // Getting data from indexDB and populate the this.currencies array
             return this.dbPromise.then(function (db) {
                 return db.transaction('currencies').objectStore('currencies').getAll();
             }).then(function (allObjs) {
@@ -187,6 +188,7 @@ var AppComponent = function () {
                 _this2.changeView();
                 _this2.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
                 _this2.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
+                _this2.getDefaultConvert();
                 _this2.extraSetup();
             });
         }
@@ -195,9 +197,10 @@ var AppComponent = function () {
         value: function extraSetup() {
             var _this3 = this;
 
+            // On convert function....
             var button = document.querySelector('button');
             button.addEventListener("click", function () {
-                // Get values from options
+                // Getting values from options
                 var f = document.getElementById('fromCurrency');
                 var t = document.getElementById('toCurrency');
                 var fromCurrency = f.options[f.selectedIndex].value;
@@ -206,9 +209,29 @@ var AppComponent = function () {
                 // Setting an event listener for a click event
                 fetch(_this3.url + ('convert?q=' + fromCurrency + '_' + toCurrency + '&compact=ultra')).then(function (response) {
                     return response.json();
-                }).then(function (myJson) {
-                    console.log(myJson);
+                }).then(function (equivalent) {
+                    var value = equivalent[fromCurrency + '_' + toCurrency];
+                    value = document.getElementById('fromAmount').value * value;
+                    document.getElementById('toAmount').setAttribute('value', '' + toCurrency + value.toFixed(2));
                 });
+            });
+        }
+    }, {
+        key: 'getDefaultConvert',
+        value: function getDefaultConvert() {
+            // Getting values from options
+            var f = document.getElementById('fromCurrency');
+            var t = document.getElementById('toCurrency');
+            var fromCurrency = f.options[f.selectedIndex].value;
+            var toCurrency = t.options[t.selectedIndex].value;
+
+            // Setting an event listener for a click event
+            fetch(this.url + ('convert?q=' + fromCurrency + '_' + toCurrency + '&compact=ultra')).then(function (response) {
+                return response.json();
+            }).then(function (equivalent) {
+                var value = equivalent[fromCurrency + '_' + toCurrency];
+                value = document.getElementById('fromAmount').value * value;
+                document.getElementById('toAmount').setAttribute('value', '' + toCurrency + value.toFixed(2));
             });
         }
     }]);
