@@ -1,20 +1,24 @@
-// ................................................IMPORTING LIB...........................................................
+// ................................................APP IMPORTING LIB...........................................................
 import idb from 'idb';
 
 
 // ................................................APP START...........................................................
 class AppComponent {
+
+// ................................................APP CONSTUCTOR SETUP...........................................................    
     constructor() {
         this.url = 'https://free.currencyconverterapi.com/api/v5/';
         this.currencies = [];
-        this.dbPromise = idb.open('currency-Store', 1, upgradeDB => {
+        this.dbName = 'currency-Store';
+        this.dbPromise = idb.open(this.dbName, 1, upgradeDB => {
             upgradeDB.createObjectStore('currencies');
+            upgradeDB.createObjectStore('rates');
         });
         this.main = document.querySelector("main");
-        this.getFromIDB() // If this fails to fetch from indexDB it falls back to the api
         this.getFromApi(); // The api calls goes through only if user is online
-        // On window load function....
     }
+
+// ................................................APP RENDER VIEW...........................................................
 
     changeView() {
         this.main.innerHTML = `
@@ -53,7 +57,7 @@ class AppComponent {
                                 <div class="col-md-6 col-sm-6">
                                     <div class="form-group">
                                      <br />
-                                        <input type="text" value="" class="form-control" id="toAmount">
+                                        <input type="text" disabled value="" class="form-control" id="toAmount">
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -67,6 +71,8 @@ class AppComponent {
             </div>
         `
     }
+
+    // ................................................APP CALL TO API...........................................................
 
     getFromApi() {
         // Defining the forEach iterator function...
@@ -85,7 +91,6 @@ class AppComponent {
                 }
             });
         }
-        const currencies = [];
          // Getting our currencies from our free api
         fetch(this.url + 'currencies')
           .then((response) => {
@@ -93,7 +98,7 @@ class AppComponent {
           })
           .then((myJson) => {
             myJson.results.forEach((value, key) => {
-                currencies.push(value);
+                this.currencies.push(value);
             });
           })
           .then(() => {
@@ -101,16 +106,21 @@ class AppComponent {
              this.dbPromise.then((db) => {
               const tx = db.transaction('currencies', 'readwrite');
               const currenciesStore = tx.objectStore('currencies');
-              currencies.forEach((value, key) => {
+              this.currencies.forEach((value, key) => {
                 currenciesStore.put(value, value.id);
               })
               return tx.complete;
             }).then(() => {
                 this.getFromIDB();
-
             });
+          })
+          .catch((error) => {
+            console.log(`=> ${error} => relying on indexDB`);
+            this.getFromIDB();
           });
     }
+
+// ................................................APP CALL TO IDB...........................................................
 
 
     getFromIDB() {
@@ -124,52 +134,94 @@ class AppComponent {
             this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
             this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
             this.getDefaultConvert();
-            this.extraSetup();
+            this.onConvert();
         });
     }
 
-    extraSetup() {
+// ................................................APP EXTRA SETUP...........................................................
+
+    onConvert() {
         // On convert function....
         const button = document.querySelector('button');
         button.addEventListener("click", () => { 
             // Getting values from options
-            const f = document.getElementById('fromCurrency');
-            const t = document.getElementById('toCurrency');
-            const fromCurrency = f.options[f.selectedIndex].value;
-            const toCurrency = t.options[t.selectedIndex].value;
+            const req = this.apiRequst();
 
             // Setting an event listener for a click event
-            fetch(this.url + `convert?q=${fromCurrency}_${toCurrency}&compact=ultra`)
-            .then((response) => {
-                return response.json();
+            fetch(this.url + `convert?q=${req.query}&compact=ultra`)
+            .then((res) => {
+                return res.json();
               })
-            .then((equivalent) => {
-                let value = equivalent[`${fromCurrency}_${toCurrency}`];
-                value = document.getElementById('fromAmount').value * value;
-                document.getElementById('toAmount').setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
-              });
+            .then((res) => {
+                let rateVal = res[`${req.query}`];
+                this.dbPromise.then(db => {
+                  const tx = db.transaction('rates', 'readwrite');
+                  tx.objectStore('rates').put(rateVal, req.query);
+                  return tx.complete;
+                }).then(() => {
+                    rateVal = document.getElementById('fromAmount').value * rateVal;
+                    document.getElementById('toAmount')
+                      .setAttribute('value', `${req.toCurrency}${rateVal.toFixed(2)}`);
+                });
+              })
+            .catch(() => {
+                this.getOfflineRate(req.query, req.toCurrency);
+            });
         });
     }
 
+// ................................................APP INITIAL CONVERSION...........................................................
+
     getDefaultConvert() {
         // Getting values from options
-        const f = document.getElementById('fromCurrency');
-        const t = document.getElementById('toCurrency');
-        const fromCurrency = f.options[f.selectedIndex].value;
-        const toCurrency = t.options[t.selectedIndex].value;
+        const req = this.apiRequst();
 
         // Setting an event listener for a click event
-        fetch(this.url + `convert?q=${fromCurrency}_${toCurrency}&compact=ultra`)
-        .then((response) => {
-            return response.json();
+        fetch(this.url + `convert?q=${req.query}&compact=ultra`)
+        .then((res) => {
+            return res.json();
           })
-        .then((equivalent) => {
-            let value = equivalent[`${fromCurrency}_${toCurrency}`];
-            value = document.getElementById('fromAmount').value * value;
-            document.getElementById('toAmount').setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
-          });
+        .then((res) => {
+            let rateVal = res[`${req.query}`];
+            this.dbPromise.then(db => {
+              const tx = db.transaction('rates', 'readwrite');
+              tx.objectStore('rates').put(rateVal, req.query);
+              return tx.complete;
+            }).then(() => {
+                rateVal = document.getElementById('fromAmount').value * rateVal;
+                document.getElementById('toAmount')
+                  .setAttribute('value', `${req.toCurrency}${rateVal.toFixed(2)}`);
+            });
+            
+          })
+        .catch((error) => {
+            this.getOfflineRate(req.query, req.toCurrency);
+        });
+    }
+
+    apiRequst() {
+         const f = document.getElementById('fromCurrency');
+        const t = document.getElementById('toCurrency');
+        return {
+            fromCurrency: f.options[f.selectedIndex].value,
+            toCurrency: t.options[t.selectedIndex].value,
+            query: `${f.options[f.selectedIndex].value}_${t.options[t.selectedIndex].value}`
+        };
+    }
+
+    getOfflineRate(query, toCurrency) {
+        return this.dbPromise.then(db => {
+          return db.transaction('rates')
+            .objectStore('rates').get(query);
+        }).then((val) => {
+            const value = document.getElementById('fromAmount').value * val;
+            document.getElementById('toAmount')
+              .setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
+        });
     }
     
 }
+
+// ................................................APP INSTANTIATION...........................................................
 
 new AppComponent();

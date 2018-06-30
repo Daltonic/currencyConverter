@@ -96,7 +96,7 @@
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // ................................................IMPORTING LIB...........................................................
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // ................................................APP IMPORTING LIB...........................................................
 
 
 var _idb = __webpack_require__(/*! idb */ "./node_modules/idb/lib/idb.js");
@@ -109,19 +109,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 // ................................................APP START...........................................................
 var AppComponent = function () {
+
+    // ................................................APP CONSTUCTOR SETUP...........................................................    
     function AppComponent() {
         _classCallCheck(this, AppComponent);
 
         this.url = 'https://free.currencyconverterapi.com/api/v5/';
         this.currencies = [];
-        this.dbPromise = _idb2.default.open('currency-Store', 1, function (upgradeDB) {
+        this.dbName = 'currency-Store';
+        this.dbPromise = _idb2.default.open(this.dbName, 1, function (upgradeDB) {
             upgradeDB.createObjectStore('currencies');
+            upgradeDB.createObjectStore('rates');
         });
         this.main = document.querySelector("main");
-        this.getFromIDB(); // If this fails to fetch from indexDB it falls back to the api
         this.getFromApi(); // The api calls goes through only if user is online
-        // On window load function....
     }
+
+    // ................................................APP RENDER VIEW...........................................................
 
     _createClass(AppComponent, [{
         key: 'changeView',
@@ -130,8 +134,11 @@ var AppComponent = function () {
                 return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
                 return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
-            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="text" value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="text" disabled value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
+
+        // ................................................APP CALL TO API...........................................................
+
     }, {
         key: 'getFromApi',
         value: function getFromApi() {
@@ -153,28 +160,34 @@ var AppComponent = function () {
                     }
                 });
             }
-            var currencies = [];
             // Getting our currencies from our free api
             fetch(this.url + 'currencies').then(function (response) {
                 return response.json();
             }).then(function (myJson) {
                 myJson.results.forEach(function (value, key) {
-                    currencies.push(value);
+                    _this.currencies.push(value);
                 });
             }).then(function () {
                 // Setting data on IndexBD
                 _this.dbPromise.then(function (db) {
                     var tx = db.transaction('currencies', 'readwrite');
                     var currenciesStore = tx.objectStore('currencies');
-                    currencies.forEach(function (value, key) {
+                    _this.currencies.forEach(function (value, key) {
                         currenciesStore.put(value, value.id);
                     });
                     return tx.complete;
                 }).then(function () {
                     _this.getFromIDB();
                 });
+            }).catch(function (error) {
+                console.log('=> ' + error + ' => relying on indexDB');
+                _this.getFromIDB();
             });
         }
+
+        // ................................................APP CALL TO IDB...........................................................
+
+
     }, {
         key: 'getFromIDB',
         value: function getFromIDB() {
@@ -189,48 +202,87 @@ var AppComponent = function () {
                 _this2.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
                 _this2.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');
                 _this2.getDefaultConvert();
-                _this2.extraSetup();
+                _this2.onConvert();
             });
         }
+
+        // ................................................APP EXTRA SETUP...........................................................
+
     }, {
-        key: 'extraSetup',
-        value: function extraSetup() {
+        key: 'onConvert',
+        value: function onConvert() {
             var _this3 = this;
 
             // On convert function....
             var button = document.querySelector('button');
             button.addEventListener("click", function () {
                 // Getting values from options
-                var f = document.getElementById('fromCurrency');
-                var t = document.getElementById('toCurrency');
-                var fromCurrency = f.options[f.selectedIndex].value;
-                var toCurrency = t.options[t.selectedIndex].value;
+                var req = _this3.apiRequst();
 
                 // Setting an event listener for a click event
-                fetch(_this3.url + ('convert?q=' + fromCurrency + '_' + toCurrency + '&compact=ultra')).then(function (response) {
-                    return response.json();
-                }).then(function (equivalent) {
-                    var value = equivalent[fromCurrency + '_' + toCurrency];
-                    value = document.getElementById('fromAmount').value * value;
-                    document.getElementById('toAmount').setAttribute('value', '' + toCurrency + value.toFixed(2));
+                fetch(_this3.url + ('convert?q=' + req.query + '&compact=ultra')).then(function (res) {
+                    return res.json();
+                }).then(function (res) {
+                    var rateVal = res['' + req.query];
+                    _this3.dbPromise.then(function (db) {
+                        var tx = db.transaction('rates', 'readwrite');
+                        tx.objectStore('rates').put(rateVal, req.query);
+                        return tx.complete;
+                    }).then(function () {
+                        rateVal = document.getElementById('fromAmount').value * rateVal;
+                        document.getElementById('toAmount').setAttribute('value', '' + req.toCurrency + rateVal.toFixed(2));
+                    });
+                }).catch(function () {
+                    _this3.getOfflineRate(req.query, req.toCurrency);
                 });
             });
         }
+
+        // ................................................APP INITIAL CONVERSION...........................................................
+
     }, {
         key: 'getDefaultConvert',
         value: function getDefaultConvert() {
+            var _this4 = this;
+
             // Getting values from options
-            var f = document.getElementById('fromCurrency');
-            var t = document.getElementById('toCurrency');
-            var fromCurrency = f.options[f.selectedIndex].value;
-            var toCurrency = t.options[t.selectedIndex].value;
+            var req = this.apiRequst();
 
             // Setting an event listener for a click event
-            fetch(this.url + ('convert?q=' + fromCurrency + '_' + toCurrency + '&compact=ultra')).then(function (response) {
-                return response.json();
-            }).then(function (equivalent) {
-                var value = equivalent[fromCurrency + '_' + toCurrency];
-                value = document.getElementById('fromAmount').value * value;
+            fetch(this.url + ('convert?q=' + req.query + '&compact=ultra')).then(function (res) {
+                return res.json();
+            }).then(function (res) {
+                var rateVal = res['' + req.query];
+                _this4.dbPromise.then(function (db) {
+                    var tx = db.transaction('rates', 'readwrite');
+                    tx.objectStore('rates').put(rateVal, req.query);
+                    return tx.complete;
+                }).then(function () {
+                    rateVal = document.getElementById('fromAmount').value * rateVal;
+                    document.getElementById('toAmount').setAttribute('value', '' + req.toCurrency + rateVal.toFixed(2));
+                });
+            }).catch(function (error) {
+                _this4.getOfflineRate(req.query, req.toCurrency);
+            });
+        }
+    }, {
+        key: 'apiRequst',
+        value: function apiRequst() {
+            var f = document.getElementById('fromCurrency');
+            var t = document.getElementById('toCurrency');
+            return {
+                fromCurrency: f.options[f.selectedIndex].value,
+                toCurrency: t.options[t.selectedIndex].value,
+                query: f.options[f.selectedIndex].value + '_' + t.options[t.selectedIndex].value
+            };
+        }
+    }, {
+        key: 'getOfflineRate',
+        value: function getOfflineRate(query, toCurrency) {
+            return this.dbPromise.then(function (db) {
+                return db.transaction('rates').objectStore('rates').get(query);
+            }).then(function (val) {
+                var value = document.getElementById('fromAmount').value * val;
                 document.getElementById('toAmount').setAttribute('value', '' + toCurrency + value.toFixed(2));
             });
         }
@@ -238,6 +290,8 @@ var AppComponent = function () {
 
     return AppComponent;
 }();
+
+// ................................................APP INSTANTIATION...........................................................
 
 new AppComponent();
 
