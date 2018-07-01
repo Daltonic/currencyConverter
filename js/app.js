@@ -215,7 +215,7 @@ class AppComponent {
     serviceWorkerRegister() {
         if (!navigator.serviceWorker) return;
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./currencyConverter/sw.js').then((reg) => {
+            navigator.serviceWorker.register('/currencyConverter/sw.js').then((reg) => {
                 console.log('service Worker Registered...')
             });
         });
