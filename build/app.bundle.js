@@ -122,9 +122,9 @@ var AppComponent = function () {
             upgradeDB.createObjectStore('rates');
         });
         this.main = document.querySelector("main");
-        this.getFromApi(); // The api calls goes through only if user is online
+        this.getFromApi();
+        this.serviceWorkerRegister();
     }
-
     // ................................................APP RENDER VIEW...........................................................
 
     _createClass(AppComponent, [{
@@ -136,7 +136,6 @@ var AppComponent = function () {
                 return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="text" disabled value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
-
         // ................................................APP CALL TO API...........................................................
 
     }, {
@@ -184,7 +183,6 @@ var AppComponent = function () {
                 _this.getFromIDB();
             });
         }
-
         // ................................................APP CALL TO IDB...........................................................
 
 
@@ -205,7 +203,6 @@ var AppComponent = function () {
                 _this2.onConvert();
             });
         }
-
         // ................................................APP EXTRA SETUP...........................................................
 
     }, {
@@ -217,7 +214,7 @@ var AppComponent = function () {
             var button = document.querySelector('button');
             button.addEventListener("click", function () {
                 // Getting values from options
-                var req = _this3.apiRequst();
+                var req = _this3.apiRequstParams();
 
                 // Setting an event listener for a click event
                 fetch(_this3.url + ('convert?q=' + req.query + '&compact=ultra')).then(function (res) {
@@ -237,7 +234,6 @@ var AppComponent = function () {
                 });
             });
         }
-
         // ................................................APP INITIAL CONVERSION...........................................................
 
     }, {
@@ -246,7 +242,7 @@ var AppComponent = function () {
             var _this4 = this;
 
             // Getting values from options
-            var req = this.apiRequst();
+            var req = this.apiRequstParams();
 
             // Setting an event listener for a click event
             fetch(this.url + ('convert?q=' + req.query + '&compact=ultra')).then(function (res) {
@@ -265,9 +261,11 @@ var AppComponent = function () {
                 _this4.getOfflineRate(req.query, req.toCurrency);
             });
         }
+        // ................................................APP REQUEST PARAMETER...........................................................
+
     }, {
-        key: 'apiRequst',
-        value: function apiRequst() {
+        key: 'apiRequstParams',
+        value: function apiRequstParams() {
             var f = document.getElementById('fromCurrency');
             var t = document.getElementById('toCurrency');
             return {
@@ -276,6 +274,8 @@ var AppComponent = function () {
                 query: f.options[f.selectedIndex].value + '_' + t.options[t.selectedIndex].value
             };
         }
+        // ................................................APP OFFLINE RATE EXTRACTION ...........................................................
+
     }, {
         key: 'getOfflineRate',
         value: function getOfflineRate(query, toCurrency) {
@@ -286,11 +286,20 @@ var AppComponent = function () {
                 document.getElementById('toAmount').setAttribute('value', '' + toCurrency + value.toFixed(2));
             });
         }
+    }, {
+        key: 'serviceWorkerRegister',
+        value: function serviceWorkerRegister() {
+            if (!navigator.serviceWorker) return;
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js').then(function (reg) {
+                    console.log('service Worker Registered...');
+                });
+            });
+        }
     }]);
 
     return AppComponent;
 }();
-
 // ................................................APP INSTANTIATION...........................................................
 
 new AppComponent();

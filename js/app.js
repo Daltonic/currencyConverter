@@ -1,7 +1,6 @@
 // ................................................APP IMPORTING LIB...........................................................
 import idb from 'idb';
 
-
 // ................................................APP START...........................................................
 class AppComponent {
 
@@ -15,9 +14,9 @@ class AppComponent {
             upgradeDB.createObjectStore('rates');
         });
         this.main = document.querySelector("main");
-        this.getFromApi(); // The api calls goes through only if user is online
+        this.getFromApi();
+        this.serviceWorkerRegister();
     }
-
 // ................................................APP RENDER VIEW...........................................................
 
     changeView() {
@@ -71,8 +70,7 @@ class AppComponent {
             </div>
         `
     }
-
-    // ................................................APP CALL TO API...........................................................
+// ................................................APP CALL TO API...........................................................
 
     getFromApi() {
         // Defining the forEach iterator function...
@@ -119,7 +117,6 @@ class AppComponent {
             this.getFromIDB();
           });
     }
-
 // ................................................APP CALL TO IDB...........................................................
 
 
@@ -137,7 +134,6 @@ class AppComponent {
             this.onConvert();
         });
     }
-
 // ................................................APP EXTRA SETUP...........................................................
 
     onConvert() {
@@ -145,7 +141,7 @@ class AppComponent {
         const button = document.querySelector('button');
         button.addEventListener("click", () => { 
             // Getting values from options
-            const req = this.apiRequst();
+            const req = this.apiRequstParams();
 
             // Setting an event listener for a click event
             fetch(this.url + `convert?q=${req.query}&compact=ultra`)
@@ -169,12 +165,11 @@ class AppComponent {
             });
         });
     }
-
 // ................................................APP INITIAL CONVERSION...........................................................
 
     getDefaultConvert() {
         // Getting values from options
-        const req = this.apiRequst();
+        const req = this.apiRequstParams();
 
         // Setting an event listener for a click event
         fetch(this.url + `convert?q=${req.query}&compact=ultra`)
@@ -198,9 +193,9 @@ class AppComponent {
             this.getOfflineRate(req.query, req.toCurrency);
         });
     }
-
-    apiRequst() {
-         const f = document.getElementById('fromCurrency');
+// ................................................APP REQUEST PARAMETER...........................................................
+    apiRequstParams() {
+        const f = document.getElementById('fromCurrency');
         const t = document.getElementById('toCurrency');
         return {
             fromCurrency: f.options[f.selectedIndex].value,
@@ -208,6 +203,7 @@ class AppComponent {
             query: `${f.options[f.selectedIndex].value}_${t.options[t.selectedIndex].value}`
         };
     }
+// ................................................APP OFFLINE RATE EXTRACTION ...........................................................
 
     getOfflineRate(query, toCurrency) {
         return this.dbPromise.then(db => {
@@ -219,9 +215,15 @@ class AppComponent {
               .setAttribute('value', `${toCurrency}${value.toFixed(2)}`);
         });
     }
-    
+    serviceWorkerRegister() {
+        if (!navigator.serviceWorker) return;
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then((reg) => {
+                console.log('service Worker Registered...')
+            });
+        });
+    }
 }
-
 // ................................................APP INSTANTIATION...........................................................
 
 new AppComponent();
