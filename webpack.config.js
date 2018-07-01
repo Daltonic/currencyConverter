@@ -16,8 +16,7 @@ module.exports = {
                     presets: ['es2015']
                 },
                 exclude: [
-                    path.resolve(__dirname, "node_modules"),
-                    path.resolve(__dirname, "assets")
+                    path.resolve(__dirname, "node_modules")
                 ]
             }
         ]
