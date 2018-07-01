@@ -22,7 +22,7 @@ class AppComponent {
     changeView() {
         this.main.innerHTML = `
             <div class="row">
-                <div class="col-md-6 ml-auto mr-auto">
+                <div class="col-lg-12 col-md-6 ml-auto mr-auto">
                     <div class="card">
                         <div class="card-body text-center">
                             <h4 class="card-title text-muted">Convert Now!</h4>
@@ -91,11 +91,11 @@ class AppComponent {
         }
          // Getting our currencies from our free api
         fetch(this.url + 'currencies')
-          .then((response) => {
-            return response.json();
+          .then((res) => {
+            return res.json();
           })
-          .then((myJson) => {
-            myJson.results.forEach((value, key) => {
+          .then((res) => {
+            res.results.forEach((value, key) => {
                 this.currencies.push(value);
             });
           })
@@ -113,20 +113,17 @@ class AppComponent {
             });
           })
           .catch((error) => {
-            console.log(`=> ${error} => relying on indexDB`);
             this.getFromIDB();
           });
     }
 // ................................................APP CALL TO IDB...........................................................
-
-
     getFromIDB() {
         // Getting data from indexDB and populate the this.currencies array
         return this.dbPromise.then(db => {
           return db.transaction('currencies')
             .objectStore('currencies').getAll();
-        }).then(allObjs => {
-            this.currencies = allObjs;
+        }).then(allCurrencies => {
+            this.currencies = allCurrencies;
             this.changeView();
             this.usd = document.querySelector("#fromCurrency option[value='USD']").setAttribute('selected', '');
             this.ngn = document.querySelector("#toCurrency option[value='NGN']").setAttribute('selected', '');

@@ -1,6 +1,7 @@
 const staticCacheName = 'currencyConcerter-v1';
 const cacheItems = [
         '/index.html',
+        '/manifest.json',
         '/assets/css/bootstrap.min.css',
         '/assets/css/now-ui-kit.css',
         '/build/app.bundle.js',
