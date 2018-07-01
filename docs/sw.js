@@ -1,15 +1,15 @@
 const staticCacheName = 'currencyConcerter-v1';
 const cacheItems = [
-        '/currencyConverter/index.html',
-        '/currencyConverter/manifest.json',
-        '/currencyConverter/assets/css/bootstrap.min.css',
-        '/currencyConverter/assets/css/now-ui-kit.css',
-        '/currencyConverter/app.bundle.js',
-        '/currencyConverter/assets/js/core/jquery.3.2.1.min.js',
-        '/currencyConverter/assets/js/core/popper.min.js',
-        '/currencyConverter/assets/js/core/bootstrap.min.js',
-        '/currencyConverter/assets/js/now-ui-kit.js',
-        '/currencyConverter/favicon.ico',
+        '/index.html',
+        '/manifest.json',
+        '/assets/css/bootstrap.min.css',
+        '/assets/css/now-ui-kit.css',
+        '/app.bundle.js',
+        '/assets/js/core/jquery.3.2.1.min.js',
+        '/assets/js/core/popper.min.js',
+        '/assets/js/core/bootstrap.min.js',
+        '/assets/js/now-ui-kit.js',
+        '/favicon.ico',
         'https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css',
         'https://free.currencyconverterapi.com/api/v5/currencies'
       ]
@@ -28,7 +28,7 @@ self.addEventListener('fetch', (event) => {
 
   if (requestUrl.origin === location.origin) {
     if (requestUrl.pathname === '/') {
-      event.respondWith(caches.match('/currencyConverter/index.html'));
+      event.respondWith(caches.match('/index.html'));
       return;
     }
   }
