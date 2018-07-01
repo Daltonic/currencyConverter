@@ -289,7 +289,7 @@ var AppComponent = function () {
         value: function serviceWorkerRegister() {
             if (!navigator.serviceWorker) return;
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/sw.js').then(function (reg) {
+                navigator.serviceWorker.register('./sw.js').then(function (reg) {
                     console.log('service Worker Registered...');
                 });
             });
