@@ -28,7 +28,7 @@ self.addEventListener('fetch', (event) => {
 
   if (requestUrl.origin === location.origin) {
     if (requestUrl.pathname === '/currencyConverter/') {
-      event.respondWith(caches.match('currencyConverter/index.html'));
+      event.respondWith(caches.match('/currencyConverter/index.html'));
       return;
     }
   }
