@@ -56,7 +56,7 @@ class AppComponent {
                                 <div class="col-md-6 col-sm-6">
                                     <div class="form-group">
                                      <br />
-                                        <input type="text" disabled value="" class="form-control" id="toAmount">
+                                        <input style="background: transparent; color: black;" type="text" disabled value="" class="form-control" id="toAmount">
                                     </div>
                                 </div>
                                 <div class="col-md-12">

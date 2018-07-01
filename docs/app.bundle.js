@@ -134,7 +134,7 @@ var AppComponent = function () {
                 return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
             }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="number" value="1" class="form-control" id="fromAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                <label class="text-left">To</label>\n                                    <br />\n                                    <select class="form-control" id="toCurrency">\n                                        ' + this.currencies.map(function (currency) {
                 return '<option value="' + currency.id + '">' + currency.id + ' - ' + currency.currencyName + '</option>';
-            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input type="text" disabled value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
+            }) + '\n                                    </select>\n                                </div>\n                                <div class="col-md-6 col-sm-6">\n                                    <div class="form-group">\n                                     <br />\n                                        <input style="background: transparent; color: black;" type="text" disabled value="" class="form-control" id="toAmount">\n                                    </div>\n                                </div>\n                                <div class="col-md-12">\n                                    <br>\n                                    <button class="btn btn-info" id="convertMe">Convert Me!</button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        ';
         }
         // ................................................APP CALL TO API...........................................................
 
@@ -289,7 +289,7 @@ var AppComponent = function () {
         value: function serviceWorkerRegister() {
             if (!navigator.serviceWorker) return;
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/currencyConverter/sw.js').then(function (reg) {
+                navigator.serviceWorker.register('/sw.js').then(function (reg) {
                     console.log('service Worker Registered...');
                 });
             });
